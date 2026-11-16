@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opération : Arrêter le Générateur ! - Aventure de Léo & Mavi</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Nunito:wght@600;800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+  color: #f8fafc;
+  min-height: 100vh;
+}
+#game { max-width: 920px; margin: 0 auto; padding: 1rem; }
+.scene { display: none; text-align: center; animation: fadeIn 0.5s; }
+.scene.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: none; } }
+h1, h2 { font-family: 'Fredoka', sans-serif; }
+.header-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  background: rgba(255,255,255,0.08); padding: 0.8rem 1.2rem; border-radius: 16px; margin-bottom: 1rem;
+}
+.score { font-size: 1.3rem; font-weight: 800; color: #fbbf24; }
+.badges { display: flex; gap: 8px; }
+.badge { width: 36px; height: 36px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.badge.unlocked { background: #fbbf24; }
+.mavi-bubble {
+  display: flex; align-items: flex-start; gap: 12px; background: rgba(59,130,246,0.15);
+  border: 2px solid #3b82f6; border-radius: 20px; padding: 1rem; margin: 1rem 0; text-align: left;
+}
+.mavi-bubble img { width: 80px; border-radius: 16px; flex-shrink: 0; }
+.phone { max-width: 340px; margin: 1rem auto; background: #111; border: 10px solid #333; border-radius: 36px; padding: 8px; }
+.phone img { width: 100%; border-radius: 18px; }
+.choices { display: flex; flex-direction: column; gap: 10px; max-width: 520px; margin: 1.2rem auto; }
+.choice {
+  background: #1e293b; border: 3px solid #475569; color: white; padding: 14px 18px;
+  font-size: 1.05rem; font-weight: 700; border-radius: 14px; cursor: pointer; transition: all 0.15s;
+  font-family: 'Fredoka', sans-serif;
+}
+.choice:hover { background: #334155; transform: translateY(-2px); }
+.choice.good { background: #065f46; border-color: #10b981; }
+.choice.bad { background: #7f1d1d; border-color: #ef4444; }
+.feedback {
+  background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 14px; margin: 1rem 0; font-size: 1.05rem;
+}
+.btn {
+  background: #3b82f6; color: white; border: none; padding: 12px 28px; font-size: 1.1rem;
+  border-radius: 50px; cursor: pointer; font-family: 'Fredoka', sans-serif; margin: 0.5rem;
+}
+.btn:hover { background: #2563eb; }
+.video-box { background: black; border-radius: 16px; overflow: hidden; margin: 1rem 0; }
+video { width: 100%; }
+.progress { height: 6px; background: #1e293b; border-radius: 3px; margin: 0.5rem 0 1rem; }
+.progress-fill { height: 100%; background: #10b981; width: 0%; transition: width 0.4s; }
+</style>
+</head>
+<body>
+<div id="game">
+  <div class="header-bar">
+    <div class="score">⭐ Points : <span id="score">0</span></div>
+    <div class="badges">
+      <div class="badge" id="b1" title="Détective">🔍</div>
+      <div class="badge" id="b2" title="Protecteur">🛡️</div>
+      <div class="badge" id="b3" title="Héros">🚀</div>
+    </div>
+  </div>
+  <div class="progress"><div class="progress-fill" id="prog"></div></div>
+
+  <!-- 0: Intro -->
+  <div class="scene active" id="s0">
+    <h1>Opération : Arrêter le Générateur !</h1>
+    <div class="mavi-bubble">
+      <img src="imagine_images/czL8L.jpg" alt="Mavi">
+      <div>
+        <strong>Mavi :</strong> Salut ! Je suis Mavi. Un méchant Générateur crée des pièges sur Internet.  
+        Aide Léo à faire les bons choix pour le désactiver !
+      </div>
+    </div>
+    <div class="video-box">
+      <video controls autoplay muted playsinline>
+        <source src="imagine_videos/n3jsb.mp4" type="video/mp4">
+      </video>
+    </div>
+    <button class="btn" onclick="go(1); playSound('start')">Commencer l’aventure</button>
+  </div>
+
+  <!-- 1: Message iPhone -->
+  <div class="scene" id="s1">
+    <div class="mavi-bubble">
+      <img src="imagine_images/czL8L.jpg" alt="Mavi">
+      <div><strong>Mavi :</strong> Léo a reçu ce message. Que doit-il faire ?</div>
+    </div>
+    <div class="phone"><img src="imagine_images/V9efS.jpg" alt="Message"></div>
+    <div class="choices">
+      <button class="choice" onclick="decide(this, false, 2, 10)">Ouvrir le lien tout de suite !</button>
+      <button class="choice" onclick="decide(this, true, 2, 30)">Demander à un adulte</button>
+      <button class="choice" onclick="decide(this, true, 2, 25)">Supprimer le message</button>
+    </div>
+    <div id="fb1" class="feedback" style="display:none"></div>
+  </div>
+
+  <!-- 2: Site jumeau -->
+  <div class="scene" id="s2">
+    <div class="mavi-bubble">
+      <img src="imagine_images/czL8L.jpg" alt="Mavi">
+      <div><strong>Mavi :</strong> Léo veut aller sur YouTube. Quelle adresse est la vraie ?</div>
+    </div>
+    <div class="choices">
+      <button class="choice" onclick="decide(this, false, 3, 10)">youtub.com</button>
+      <button class="choice" onclick="decide(this, true, 3, 30)">youtube.com</button>
+      <button class="choice" onclick="decide(this, false, 3, 5)">youtubee.com</button>
+    </div>
+    <div id="fb2" class="feedback" style="display:none"></div>
+  </div>
+
+  <!-- 3: Publicités -->
+  <div class="scene" id="s3">
+    <div class="mavi-bubble">
+      <img src="imagine_images/czL8L.jpg" alt="Mavi">
+      <div><strong>Mavi :</strong> Dans les résultats de recherche, les 2 premiers disent « Annonce ». Que faire ?</div>
+    </div>
+    <div class="choices">
+      <button class="choice" onclick="decide(this, false, 4, 10)">Cliquer sur le premier</button>
+      <button class="choice" onclick="decide(this, true, 4, 30)">Sauter les annonces</button>
+    </div>
+    <div id="fb3" class="feedback" style="display:none"></div>
+  </div>
+
+  <!-- 4: Cadenas -->
+  <div class="scene" id="s4">
+    <div class="mavi-bubble">
+      <img src="imagine_images/czL8L.jpg" alt="Mavi">
+      <div><strong>Mavi :</strong> Un site demande le numéro de maman. Il n’y a pas de cadenas 🔒. Que faire ?</div>
+    </div>
+    <div class="choices">
+      <button class="choice" onclick="decide(this, false, 5, 5)">Donner le numéro</button>
+      <button class="choice" onclick="decide(this, true, 5, 40)">Fermer le site et demander à un adulte</button>
+    </div>
+    <div id="fb4" class="feedback" style="display:none"></div>
+  </div>
+
+  <!-- 5: Hotkeys -->
+  <div class="scene" id="s5">
+    <div class="mavi-bubble">
+      <img src="imagine_images/czL8L.jpg" alt="Mavi">
+      <div><strong>Mavi :</strong> Pour ouvrir un nouvel onglet sans perdre la page, quelle touche magique ?</div>
+    </div>
+    <div class="choices">
+      <button class="choice" onclick="decide(this, false, 6, 10)">Ctrl + N</button>
+      <button class="choice" onclick="decide(this, true, 6, 30)">Ctrl + T</button>
+      <button class="choice" onclick="decide(this, false, 6, 5)">Ctrl + W</button>
+    </div>
+    <div id="fb5" class="feedback" style="display:none"></div>
+  </div>
+
+  <!-- 6: Finale -->
+  <div class="scene" id="s6">
+    <div class="mavi-bubble">
+      <img src="imagine_images/czL8L.jpg" alt="Mavi">
+      <div><strong>Mavi :</strong> Bravo héros ! Le Générateur est désactivé. Code secret : <strong>7-3-9-2-5</strong></div>
+    </div>
+    <h1>🎉 VICTOIRE !</h1>
+    <p style="font-size:1.3rem; margin:1rem 0;">Points finaux : <span id="finalScore">0</span></p>
+    <div class="badges" style="justify-content:center; margin:1rem 0;">
+      <div class="badge unlocked">🔍</div>
+      <div class="badge unlocked">🛡️</div>
+      <div class="badge unlocked">🚀</div>
+    </div>
+    <button class="btn" onclick="location.reload()">Rejouer</button>
+  </div>
+</div>
+
+<script>
+let score = 0;
+let current = 0;
+const totalScenes = 6;
+
+function playSound(type) {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  if (type === 'good') {
+    osc.frequency.setValueAtTime(523, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(784, ctx.currentTime + 0.2);
+  } else if (type === 'bad') {
+    osc.frequency.setValueAtTime(200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, ctx.currentTime + 0.3);
+  } else {
+    osc.frequency.value = 440;
+  }
+  gain.gain.setValueAtTime(0.15, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+  osc.start();
+  osc.stop(ctx.currentTime + 0.4);
+}
+
+function go(n) {
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+  document.getElementById('s' + n).classList.add('active');
+  current = n;
+  document.getElementById('prog').style.width = ((n / totalScenes) * 100) + '%';
+}
+
+function decide(btn, good, next, points) {
+  const parent = btn.parentElement;
+  parent.querySelectorAll('.choice').forEach(c => c.disabled = true);
+  const fb = document.getElementById('fb' + (next - 1));
+
+  if (good) {
+    btn.classList.add('good');
+    score += points;
+    playSound('good');
+    fb.innerHTML = '✅ Super choix ! +' + points + ' points. ' + explanation(next);
+    if (score >= 60) document.getElementById('b1').classList.add('unlocked');
+    if (score >= 100) document.getElementById('b2').classList.add('unlocked');
+    if (score >= 140) document.getElementById('b3').classList.add('unlocked');
+  } else {
+    btn.classList.add('bad');
+    playSound('bad');
+    fb.innerHTML = '❌ Piège ! ' + explanation(next);
+  }
+  document.getElementById('score').textContent = score;
+  fb.style.display = 'block';
+
+  setTimeout(() => {
+    if (next === 6) document.getElementById('finalScore').textContent = score;
+    go(next);
+  }, 1600);
+}
+
+function explanation(s) {
+  const map = {
+    2: "Si c’est trop beau (iPhone gratuit), c’est un piège. Demande toujours à un adulte.",
+    3: "Vérifie chaque lettre : youtube.com est le vrai site.",
+    4: "Les résultats « Annonce » sont des pubs. On les saute.",
+    5: "Sans cadenas 🔒, ne donne jamais d’infos personnelles.",
+    6: "Ctrl + T ouvre un nouvel onglet (T = Tab)."
+  };
+  return map[s] || "";
+}
+</script>
+</body>
+</html>
